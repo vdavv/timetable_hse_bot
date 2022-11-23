@@ -2,14 +2,15 @@ import telebot
 import config
 import parser
 import time
-import datetime
+import datetime as dt
+from datetime import datetime
 
 bot = telebot.TeleBot(config.BOT_TOKEN)
 
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.reply_to(message, "Howdy, how are you doing?")
+    bot.reply_to(message, "This is bot for retrieving FCS HSE timetable")
 
 
 @bot.message_handler(commands=['timer'])
@@ -18,19 +19,22 @@ def timer(message):
     print(message)
     n = 5
     time.sleep(n)
-    bot.reply_to(message, f'Прошло {n} секунд{message.id}')
+    bot.reply_to(message, f'Прошло {n} секунд {message.id}')
 
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     print(message.chat.id)
     # print(message)
-    print(message.text + ' - ' + message.from_user.username + " - " + datetime.datetime.now().strftime("%H:%M:%S"))
+    print(message.text + ' - ' + message.from_user.username + " - " + dt.datetime.now().strftime("%H:%M:%S"))
     if message.text[0] == '/':
         bot.reply_to(message, 'command unknown')
 
     else:
-        bot.reply_to(message, 'howdy?')
+        if dt.datetime.now().strftime("%H"):
+            pass
+            # update timetable
+        bot.reply_to(message, 'under development')
 
 
 if __name__ == '__main__':
