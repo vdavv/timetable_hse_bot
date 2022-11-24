@@ -3,15 +3,19 @@ import json
 import datetime as dt
 from datetime import datetime
 
-today_v = datetime.today().strftime('%Y-%m-%d')
-today_plus7_v = (dt.datetime.now() + dt.timedelta(days=7)).strftime('%Y-%m-%d')
+
+# today_v = datetime.today().strftime('%Y-%m-%d')
+# - today date in format YYYY-MM-DD
+# today_plus7_v = (dt.datetime.now() + dt.timedelta(days=7)).strftime('%Y-%m-%d')
+# - date after 7 days in format YYYY-MM-DD
 
 
 # https://ruz.hse.ru/api/schedule/group/129742?start=2022.11.21&finish=2022.11.27&lng=1
-def get_schedule_by_group(group='129742', start=today_v, finish=today_plus7_v):
+def get_schedule_by_group(group='129742', start=datetime.today(),
+                          finish=(dt.datetime.now() + dt.timedelta(days=7)).strftime('%Y-%m-%d')):
     to_json = []
     schedule_api = "https://ruz.hse.ru/api/schedule/group/{}?start={}&finish={}&lng=1"
-    response = requests.get(schedule_api.format(group, start, finish))
+    response = requests.get(schedule_api.format(group, start.strftime('%Y-%m-%d'), finish))
     content = json.loads(response.content)
     for lesson in content:
         lesson_module = {
@@ -41,7 +45,7 @@ def get_schedule_by_group(group='129742', start=today_v, finish=today_plus7_v):
         to_json.append(lesson_module)
     json_object = json.dumps({'data': to_json}, indent=12, ensure_ascii=False)
     # 'data{n}.json' - file where vacancy cards are parsed, n - arbitrary number
-    with open("data.json", "w", encoding='utf8') as outfile:
+    with open(f"data/data_{start.strftime('%Y_%m_%d_%H%M')}.json", "w", encoding='utf8') as outfile:
         outfile.write(json_object)
 
 
@@ -58,4 +62,4 @@ def get_group_by_name(group_name='БПАД222'):
 """if __name__ == '__main__':
     print(get_group_by_name('БПАД222'))"""
 
-get_schedule_by_group('129742', today_v, today_plus7_v)
+# get_schedule_by_group()
