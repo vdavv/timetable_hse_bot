@@ -7,6 +7,8 @@ import datetime as dt
 from datetime import datetime
 import parser
 
+# import heapq
+
 bot: TeleBot = telebot.TeleBot(config.BOT_TOKEN)
 
 markup = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -18,6 +20,16 @@ def print_in_terminal(message):
     print(message.chat.id)
     # print(message)
     print(message.text + ' - ' + message.from_user.username + " - " + dt.datetime.now().strftime("%H:%M:%S"))
+
+
+def create_out_string(json_file):
+    to_return_common = ''
+    to_return_first = ''
+    to_return_second = ''
+    lessons_list = json_file['data']
+    date = lessons_list[0]["date"]
+    to_return_common += '🟥 ' + lessons_list[0]["dayOfWeekString"] + ' '
+    to_return_common += date[-1:-3:-1][::-1] + '/' + date[-4:-6:-1][::-1] + ':\n\n'
 
 
 def read_timetable(json_file):
@@ -100,6 +112,13 @@ def send_timetable(message):
         # Reading from json file
         json_timetable = json.load(openfile)
     bot.reply_to(message, read_timetable(json_timetable))
+
+
+@bot.message_handler(func=lambda message: message.text in config.terminate_phrases)
+def terminate_bot(message):
+    print_in_terminal(message)
+    bot.reply_to(message, 'bot terminated')
+    bot.stop_bot()
 
 
 """while True:
