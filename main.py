@@ -6,6 +6,7 @@ import time
 import datetime as dt
 from datetime import datetime
 import parser
+import os, shutil
 
 # import heapq
 
@@ -30,6 +31,43 @@ def create_out_string(json_file):
     date = lessons_list[0]["date"]
     to_return_common += '🟥 ' + lessons_list[0]["dayOfWeekString"] + ' '
     to_return_common += date[-1:-3:-1][::-1] + '/' + date[-4:-6:-1][::-1] + ':\n\n'
+    for lesson in lessons_list:
+        if lesson['date'] == date:
+            if lesson["groupOid"] in config.commonOID:
+                to_return_common += str(lesson["lessonNumberStart"])
+                to_return_common += ' - '
+                to_return_common += lesson["discipline"] + ' '
+                to_return_common += lesson["kindOfWork"] + ' - '
+                to_return_common += lesson["auditorium"] + ' '
+                to_return_common += lesson["beginLesson"] + '-' + lesson["endLesson"]
+                to_return_common += '\n\n'
+            elif lesson['groupOid'] in config.firstOID:
+                to_return_first += str(lesson["lessonNumberStart"])
+                to_return_first += ' - '
+                to_return_first += lesson["discipline"] + ' '
+                to_return_first += lesson["kindOfWork"] + ' - '
+                to_return_first += lesson["auditorium"] + ' '
+                to_return_first += lesson["beginLesson"] + '-' + lesson["endLesson"]
+                to_return_first += '\n\n'
+            elif lesson['groupOid'] in config.secondOID:
+                to_return_second += str(lesson["lessonNumberStart"])
+                to_return_second += ' - '
+                to_return_second += lesson["discipline"] + ' '
+                to_return_second += lesson["kindOfWork"] + ' - '
+                to_return_second += lesson["auditorium"] + ' '
+                to_return_second += lesson["beginLesson"] + '-' + lesson["endLesson"]
+                to_return_second += '\n\n'
+            else:
+                to_return_common += str(lesson["lessonNumberStart"])
+                to_return_common += ' - '
+                to_return_common += lesson["discipline"] + ' '
+                to_return_common += lesson["kindOfWork"] + ' - '
+                to_return_common += lesson["auditorium"] + ' '
+                to_return_common += lesson["beginLesson"] + '-' + lesson["endLesson"]
+                to_return_common += '\n\n'
+        else:
+            pass
+    return to_return_common + '🔴 First group: \n\n' + to_return_first + '🔴 Second group: \n\n' + to_return_second
 
 
 def read_timetable(json_file):
@@ -67,6 +105,7 @@ def read_timetable(json_file):
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
+    print_in_terminal(message)
     bot.reply_to(message, "This is bot for retrieving FCS HSE timetable", reply_markup=markup)
 
 
@@ -111,7 +150,7 @@ def send_timetable(message):
     with open(f'data/data_{today_v.strftime("%Y_%m_%d_%H%M")}.json', 'r') as openfile:
         # Reading from json file
         json_timetable = json.load(openfile)
-    bot.reply_to(message, read_timetable(json_timetable))
+    bot.reply_to(message, create_out_string(json_timetable))
 
 
 @bot.message_handler(func=lambda message: message.text in config.terminate_phrases)
@@ -119,6 +158,27 @@ def terminate_bot(message):
     print_in_terminal(message)
     bot.reply_to(message, 'bot terminated')
     bot.stop_bot()
+
+
+@bot.message_handler(func=lambda message: message.text in config.clear_phrases)
+def clear_date(message):
+    print_in_terminal(message)
+    flag = True
+    folder = 'data'
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            bot.reply_to(message, 'Failed to delete %s. Reason: %s' % (file_path, e))
+            flag = False
+    if flag:
+        print('data has been cleared')
+        bot.reply_to(message, 'data has been cleared')
 
 
 """while True:
